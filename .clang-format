@@ -1,0 +1,18 @@
+BasedOnStyle: Mozilla
+ColumnLimit: 180
+IndentWidth: 2
+UseTab: Never
+MaxEmptyLinesToKeep: 1
+BreakBeforeBinaryOperators: None
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+Standard: Latest
+AlignConsecutiveAssignments:
+  Enabled: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+QualifierAlignment: Right
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortBlocksOnASingleLine: Never
+BinPackParameters: AlwaysOnePerLine
+BreakFunctionDefinitionParameters: true
