@@ -7,59 +7,57 @@
 
 namespace datastructure {
 namespace impl {
-/// Pushes a value onto a binary heap using the given comparator.
-inline void
-heap_push(
-  std::vector<int>& heap,
-  int               value,
-  auto              cmp)
-{
-  heap.push_back(value);
-  std::push_heap(heap.begin(), heap.end(), cmp);
-}
 
-/// Pops and returns the top value from a binary heap using the given comparator.
 inline auto
-heap_pop(
-  std::vector<int>& heap,
-  auto              cmp) -> int
-{
-  std::pop_heap(heap.begin(), heap.end(), cmp);
-  auto const top = heap.back();
-  heap.pop_back();
-  return top;
-}
-
-/// Maintains a running median of a stream of numbers using two heaps.
-struct median_finder
+build_median_of_two_heaps() -> std::pair<std::vector<int>,
+                                         std::vector<int>>
 {
   std::vector<int> max_heap; // lower half, max-heap via std::less
   std::vector<int> min_heap; // upper half, min-heap via std::greater
+  return { std::move(max_heap), std::move(min_heap) };
+}
 
-  /// Adds a number to the two-heap structure, keeping heaps balanced.
-  inline void add_number(
-    int num)
-  {
-    if (max_heap.empty() || num <= max_heap.front()) {
-      heap_push(max_heap, num, std::less<>{});
-    } else {
-      heap_push(min_heap, num, std::greater<>{});
-    }
-
-    if (max_heap.size() > min_heap.size() + 1) {
-      heap_push(min_heap, heap_pop(max_heap, std::less<>{}), std::greater<>{});
-    } else if (min_heap.size() > max_heap.size()) {
-      heap_push(max_heap, heap_pop(min_heap, std::greater<>{}), std::less<>{});
-    }
+/// Adds a number to the two-heap structure, keeping heaps balanced.
+inline auto
+push_median_of_two_heaps(
+  std::vector<int>& max_heap,
+  std::vector<int>& min_heap,
+  int               num)
+{
+  // push to the right heap
+  if (max_heap.empty() || num <= max_heap.front()) {
+    max_heap.push_back(num);
+    std::ranges::push_heap(max_heap, std::less<int>{});
+  } else {
+    min_heap.push_back(num);
+    std::ranges::push_heap(min_heap, std::greater<int>{});
   }
 
-  /// Returns the current median of all numbers added so far.
-  inline auto find_median() const -> double
-  {
-    if (max_heap.size() > min_heap.size()) return static_cast<double>(max_heap.front());
-    return (static_cast<double>(max_heap.front()) + static_cast<double>(min_heap.front())) / 2.0;
+  // ensure balance
+  if (max_heap.size() > min_heap.size() + 1) {
+    // move max_heap top to min_heap
+    std::ranges::pop_heap(max_heap, std::less<int>{});
+    min_heap.push_back(max_heap.back());
+    max_heap.pop_back();
+    std::ranges::push_heap(min_heap, std::greater<int>{});
+  } else if (min_heap.size() > max_heap.size()) {
+    // move min_heap top to max_heap
+    std::ranges::pop_heap(min_heap, std::greater<int>{});
+    max_heap.push_back(min_heap.back());
+    min_heap.pop_back();
+    std::ranges::push_heap(max_heap, std::less<int>{});
   }
-};
+}
+
+/// Returns the current median of all numbers added so far.
+inline auto
+find_median_of_two_heaps(
+  std::vector<int> const& max_heap,
+  std::vector<int> const& min_heap) -> double
+{
+  if (max_heap.size() > min_heap.size()) return static_cast<double>(max_heap.front());
+  return (static_cast<double>(max_heap.front()) + static_cast<double>(min_heap.front())) / 2.0;
+}
 } // namespace impl
 
 inline void
@@ -76,10 +74,10 @@ median_two_heaps()
     std::cout << ' ' << v;
   std::cout << '\n';
 
-  auto finder = impl::median_finder{};
+  auto [max_heap, min_heap] = impl::build_median_of_two_heaps();
   for (auto const v : v_in) {
-    finder.add_number(v);
-    std::cout << "After " << v << ": median = " << finder.find_median() << '\n';
+    impl::push_median_of_two_heaps(max_heap, min_heap, v);
+    std::cout << "After " << v << ": median = " << impl::find_median_of_two_heaps(max_heap, min_heap) << '\n';
   }
 }
 } // namespace datastructure

@@ -24,17 +24,20 @@ build_sparse_table(
 {
   if (v.empty()) return {};
 
-  constexpr auto one    = std::size_t{ 1 };
-  auto const     n      = v.size();
-  auto const     k      = static_cast<std::size_t>(std::bit_width(n));
-  auto           buffer = std::vector(k * n, 0);
-  auto const     st     = transpose2d(buffer, n);
+  constexpr auto zero = std::size_t{ 0 };
+  constexpr auto one  = std::size_t{ 1 };
+
+  auto const n      = v.size();
+  auto const k      = static_cast<std::size_t>(std::bit_width(n));
+  auto       buffer = std::vector(k * n, 0);
+  auto const st     = transpose2d(buffer, n);
 
   std::ranges::copy(v, buffer.begin());
-  for (std::size_t j = 1; j < k; j++)
-    for (std::size_t i = 0; i + (one << j) <= n; i++)
+  for (auto j = one; j < k; ++j) {
+    auto const m = n - (one << j) + one;
+    for (auto i = zero; i < m; ++i)
       st(i, j) = std::min(st(i, j - one), st(i + (one << (j - one)), j - one));
-
+  }
   return buffer;
 }
 

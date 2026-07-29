@@ -21,16 +21,16 @@ insert_trie(
   std::vector<trie_node>& nodes,
   std::string_view        word)
 {
-  std::size_t cur = 0;
+  auto current = std::size_t{ 0 };
   for (auto const c : word) {
     auto const i = static_cast<std::size_t>(c - 'a');
-    if (nodes[cur].next[i] == 0) {
-      nodes[cur].next[i] = nodes.size();
+    if (nodes[current].next[i] == 0) {
+      nodes[current].next[i] = nodes.size();
       nodes.emplace_back();
     }
-    cur = nodes[cur].next[i];
+    current = nodes[current].next[i];
   }
-  nodes[cur].terminal = true;
+  nodes[current].terminal = true;
 }
 
 /// Walks the trie along the given prefix, returning the resulting node index or 0 if not found.
@@ -39,12 +39,13 @@ walk_trie(
   std::vector<trie_node> const& nodes,
   std::string_view              prefix) -> std::size_t
 {
-  std::size_t cur = 0;
+  auto current = std::size_t{ 0 };
   for (auto const c : prefix) {
-    cur = nodes[cur].next[static_cast<std::size_t>(c - 'a')];
-    if (cur == 0) return 0; // not found
+    auto const i = static_cast<std::size_t>(c - 'a');
+    current = nodes[current].next[i];
+    if (current == 0) return 0; // not found
   }
-  return cur;
+  return current;
 }
 
 /// Checks whether the trie contains the exact given word.
@@ -53,8 +54,8 @@ contains_trie(
   std::vector<trie_node> const& nodes,
   std::string_view              word) -> bool
 {
-  auto const cur = walk_trie(nodes, word);
-  return cur != 0 && nodes[cur].terminal;
+  auto const i = walk_trie(nodes, word);
+  return i != 0 && nodes[i].terminal;
 }
 
 /// Checks whether the trie contains any word with the given prefix.
